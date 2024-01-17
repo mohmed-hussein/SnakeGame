@@ -1,12 +1,9 @@
+#include <bits/stdc++.h>
 #include <termios.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <iostream>
-#include <deque>
-#include <cstdlib> 
-#include <time.h> 
 using namespace std;
+
 class Snake{
 	private :
 		int HeadX , HeadY , len;
@@ -17,13 +14,13 @@ class Snake{
 	Snake(int Xpos = 10 , int Ypos = 25){
 		HeadX = Xpos;
 		HeadY = Ypos;
+		body.push_front({HeadX , HeadY});
+		len = 1;
 		dir = '&';
 	}
 	void setDir(char _dir){
 		if(_dir == 'w' || _dir == 's' || _dir == 'a' || _dir == 'd'){
-		
 				dir = _dir;
-			
 		}
 	}
 	pair<int,int> delta(){
@@ -38,10 +35,10 @@ class Snake{
 			return {HeadX , HeadY};
 	}
 	void move(){
+		body.pop_back();
 		HeadX += delta().first;
 		HeadY += delta().second;
 		body.push_front({HeadX, HeadY});
-		body.pop_back();
 	}
 	
 	void catchFruit(){
@@ -67,24 +64,24 @@ class Fruit{
 		int PosX , PosY;
 	public :
 	Fruit(int h = 20 , int w = 50){
-			ChangePos(h , w);
+		ChangePos(h , w);
+		srand(static_cast<unsigned int>(time(0)));
 	}
 	pair<int,int> getPos(){
 			return {PosX , PosY};
 	}
 	void ChangePos(int mapHight , int mapWidth){
-		mapHight--;
-		mapWidth--;
-		PosX = (rand() % mapHight) + 1;
-		PosY = (rand() % mapWidth) + 1;
+		
+		PosX = 2 + rand() % (mapHight - 3);
+		PosY = 2 + rand() % (mapWidth - 3);
 	}
 };
 
-class map{
+class Gamemap{
 	private :
 		int width  , hight ;
 	public :
-	map(int h = 20 , int w = 50){
+	Gamemap(int h = 20 , int w = 50){
 		width = w;
 		hight = h;
 	}
@@ -105,17 +102,18 @@ class map{
 class SnakeGame{
 	private :
 		Snake snake;
-		map mp;
+		Gamemap mp;
 		Fruit fruit;
 		int score , speed;
+		bool Lose;
 	public :
-		SnakeGame(int mapHight = 20 , int mapWidth = 50 , int _speed = 52){
+		SnakeGame(int mapHight = 20 , int mapWidth = 50 , int _speed = 56){
 			mp.setHight(mapHight);
 			mp.setWidth(mapWidth);
 			speed = _speed;
 			score = 0;
 		}
-		
+	
 	void drow(){
 		int h = mp.getHight();
 		int w = mp.getWidth();
@@ -126,23 +124,27 @@ class SnakeGame{
 				if(i == 1 || j == 1 || i == h || j == w) cout<<'*';
 				else if(SnakeHeadPos == make_pair(i , j)) cout<<'@';
 				else{
+					
 					bool printBody = false;
-					for(int k = 0 ; k < snake.getLen();k++)
+					
+					for(int k = 1 ; k < snake.getLen();k++)
 						if(body[k] == make_pair(i , j)){
 							cout<<'o';
 							printBody = true;
 							break;
 						}
+						
 					if(!printBody && fruit.getPos() == make_pair(i , j)){
 						cout<<'$';
-						continue;
-					}
-					if(!printBody)
+					}else if(!printBody)
 						cout<<' ';
 				}
+					
 			}
 			cout<<endl;
 		}
+		cout<<"Score : " << score<<endl<<endl;
+		cout<<"\t \t Make by Eng : Mohamed Hussein."<<endl;
     }
     
     inline void sleep(int n){
@@ -150,47 +152,53 @@ class SnakeGame{
     }
     
     int getkey(){
-    termios term;
-    
-    tcgetattr(0, &term);
+		termios term;
+		
+		tcgetattr(0, &term);
 
-    termios term2 = term;
+		termios term2 = term;
 
-    term2.c_lflag &= ~(ICANON | ECHO);
+		term2.c_lflag &= ~(ICANON | ECHO);
 
-    tcsetattr(0, TCSANOW, &term2);
+		tcsetattr(0, TCSANOW, &term2);
 
-	int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+		int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+		fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 
-    int key = getchar();
+		int key = getchar();
 
-    tcsetattr(0, TCSANOW, &term);
+		tcsetattr(0, TCSANOW, &term);
 
-    return key;
+		return key;
     }
+    bool collison(){
+		auto [Headx , Heady] = snake.getHeadPos();
+		if(Headx == 1 || Headx == mp.getHight() || Heady == 1 || Heady == mp.getWidth())
+			return true;
+			
+		deque<pair<int,int>> body = snake.getBodyPos();
+		for(int i = 1 ; i < snake.getLen(); i++){
+				if(snake.getHeadPos() == body[i]) return true;
+		}
+		
+		return false;
+	}
     void run(){
 		int key;
-		while(true){
+		while(!this->collison()){
 			if ((key = getkey()))
 				snake.setDir(key);
+			snake.move();
+			drow();
 			if(snake.getHeadPos() == fruit.getPos()){
 				snake.catchFruit();
 				fruit.ChangePos(mp.getHight() , mp.getWidth());
 				score++;	
 			}
-			snake.move();
-			drow();
-			
-			cout<<"Score : " << score<<endl;
- 			sleep(speed);
+			sleep(speed);
 			system("clear");
 		}
-		
-		
 	}
-		
-	
 		
 };
 
@@ -199,6 +207,7 @@ int main()
 {
 	SnakeGame game;
 	game.run();
-
+	if(game.collison())
+		cout<<"You lose ."<<endl;
     return 0;
 }
