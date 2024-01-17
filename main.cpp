@@ -18,10 +18,18 @@ class Snake{
 		len = 1;
 		dir = '&';
 	}
+	bool reverseDir(char _dir){
+		string dirRev;
+		dirRev.push_back(_dir);
+		dirRev.push_back(dir);
+		if(dirRev[0] > dirRev[1]) swap(dirRev[0] , dirRev[1]);
+		
+		if(dirRev == "ad" || dirRev == "sw") return true;
+		return false;
+	}
 	void setDir(char _dir){
-		if(_dir == 'w' || _dir == 's' || _dir == 'a' || _dir == 'd'){
-				dir = _dir;
-		}
+		if((!reverseDir(_dir) || len == 1) && (_dir == 'w' || _dir == 's' || _dir == 'a' || _dir == 'd'))
+			dir = _dir;
 	}
 	pair<int,int> delta(){
 		int dx = 0 , dy = 0;
@@ -207,7 +215,6 @@ int main()
 {
 	SnakeGame game;
 	game.run();
-	if(game.collison())
-		cout<<"You lose ."<<endl;
+	
     return 0;
 }
