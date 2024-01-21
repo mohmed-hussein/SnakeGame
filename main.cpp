@@ -18,6 +18,9 @@ class Snake{
 		len = 1;
 		dir = '&';
 	}
+	bool DirValidation(char _dir){
+		return ((!reverseDir(_dir) || len == 1) && (_dir == 'w' || _dir == 's' || _dir == 'a' || _dir == 'd'));
+	}
 	bool reverseDir(char _dir){
 		string dirRev;
 		dirRev.push_back(_dir);
@@ -28,7 +31,7 @@ class Snake{
 		return false;
 	}
 	void setDir(char _dir){
-		if((!reverseDir(_dir) || len == 1) && (_dir == 'w' || _dir == 's' || _dir == 'a' || _dir == 'd'))
+		if(DirValidation(_dir))
 			dir = _dir;
 	}
 	pair<int,int> delta(){
