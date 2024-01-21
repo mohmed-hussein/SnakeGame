@@ -113,46 +113,45 @@ class SnakeGame{
 		Gamemap mp;
 		Fruit fruit;
 		int score , speed;
-		bool Lose;
 	public :
-		SnakeGame(int mapHight = 20 , int mapWidth = 50 , int _speed = 56){
-			mp.setHight(mapHight);
-			mp.setWidth(mapWidth);
-			speed = _speed;
-			score = 0;
+		SnakeGame(int mapHight = 20, int mapWidth = 50, int _speed = 56)
+        : mp(mapHight, mapWidth),fruit(mapHight , mapWidth),  score(0) , speed(_speed){}
+        
+        
+	bool drowSnake(int i , int j){
+		pair<int,int> SnakeHeadPos = snake.getHeadPos();
+		
+		if(SnakeHeadPos == make_pair(i , j)) return cout<<'@' , true;
+		
+		deque<pair<int,int>> body = snake.getBodyPos();
+		for(int k = 1 ; k < snake.getLen();k++){
+			if(body[k] == make_pair(i , j)){
+				cout<<'o';
+				return true;
+			}
 		}
-	
+		return false;
+	}
 	void drow(){
+		system("clear");
+		
 		int h = mp.getHight();
 		int w = mp.getWidth();
-		pair<int,int> SnakeHeadPos = snake.getHeadPos();
-		deque<pair<int,int>> body = snake.getBodyPos();
+		
 		for(int i = 1 ; i <= h ; i++){
 			for(int j = 1 ; j <= w ; j++){
 				if(i == 1 || j == 1 || i == h || j == w) cout<<'*';
-				else if(SnakeHeadPos == make_pair(i , j)) cout<<'@';
 				else{
 					
-					bool printBody = false;
-					
-					for(int k = 1 ; k < snake.getLen();k++)
-						if(body[k] == make_pair(i , j)){
-							cout<<'o';
-							printBody = true;
-							break;
-						}
-						
-					if(!printBody && fruit.getPos() == make_pair(i , j)){
-						cout<<'$';
-					}else if(!printBody)
-						cout<<' ';
+					if(drowSnake(i , j)) continue;
+					if(fruit.getPos() == make_pair(i , j)) cout<<'$';
+					else cout<<' ';
 				}
-					
 			}
 			cout<<endl;
 		}
 		cout<<"Score : " << score<<endl<<endl;
-		cout<<"\t \t Make by Eng : Mohamed Hussein."<<endl;
+		cout<<"\t \t Maked by Eng : Mohamed Hussein."<<endl;
     }
     
     inline void sleep(int n){
@@ -179,32 +178,38 @@ class SnakeGame{
 
 		return key;
     }
+    
     bool collison(){
 		auto [Headx , Heady] = snake.getHeadPos();
 		if(Headx == 1 || Headx == mp.getHight() || Heady == 1 || Heady == mp.getWidth())
 			return true;
 			
 		deque<pair<int,int>> body = snake.getBodyPos();
-		for(int i = 1 ; i < snake.getLen(); i++){
+		
+		for(int i = 1 ; i < snake.getLen(); i++)
 				if(snake.getHeadPos() == body[i]) return true;
-		}
 		
 		return false;
 	}
-    void run(){
+	void Input(){
 		int key;
-		while(!this->collison()){
-			if ((key = getkey()))
+		if ((key = getkey()))
 				snake.setDir(key);
-			snake.move();
+	}
+	void update(){
+		snake.move();
+		if(snake.getHeadPos() == fruit.getPos()){
+			snake.catchFruit();
+			fruit.ChangePos(mp.getHight() , mp.getWidth());
+			score++;	
+		}
+	}
+    void run(){
+		while(!this->collison()){
+			Input();
+			update();
 			drow();
-			if(snake.getHeadPos() == fruit.getPos()){
-				snake.catchFruit();
-				fruit.ChangePos(mp.getHight() , mp.getWidth());
-				score++;	
-			}
 			sleep(speed);
-			system("clear");
 		}
 	}
 		
